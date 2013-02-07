@@ -11,11 +11,14 @@ module Wox
       fail "Couldn't find #{app_file}" unless File.exists? app_file
     
       provisioning_profile_file = find_matching_mobile_provision environment[:provisioning_profile]
-      fail "Unable to find matching provisioning profile for '#{environment[:provisioning_profile]}'" if provisioning_profile_file.empty?
-          
+      fail "Unable to find matching provisioning profile for '#{environment[:provisioning_profile]}'" if provisioning_profile_file.empty?    
+
+      provisioning_profile_files = provisioning_profile_file.split("\n")
+      fail "Multiple provisioning profiles match '#{environment[:provisioning_profile]}'. Please remove old provisioning profiles" if provisioning_profile_files.count > 1
+
       puts "Creating #{ipa_file}"
       log_file = File.join build_dir, "ipa.log"
-      run_command "xcrun -sdk #{sdk} PackageApplication -v '#{app_file}' -o '#{File.expand_path ipa_file}' --sign '#{environment[:developer_certificate]}' --embed '#{provisioning_profile_file}'", :results => log_file
+      run_command  "xcrun -sdk #{sdk} PackageApplication -v '#{app_file}' -o '#{File.expand_path ipa_file}' --sign '#{environment[:developer_certificate]}' --embed '#{provisioning_profile_file}'", :results => log_file
     end
     
     def find_matching_mobile_provision match_text
